@@ -1,17 +1,4 @@
 {
-    "nextId": 7,
-    "users": [
-        {
-            "name": "asdf",
-            "age": 123,
-            "email": "asdf@asdf.om",
-            "id": 4
-        },
-        {
-            "name": "asdf",
-            "age": 123,
-            "email": "victor.raphael@grupo-3c.com",
-            "id": 6
-        }
-    ]
+    "nextId": 1,
+    "users": []
 }
