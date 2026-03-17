@@ -5,7 +5,7 @@ require_once __DIR__ . '/data.php';
 
 function getAllUsers(string $dataFile): array
 {
-    $data = findAllUsers($dataFile);
+    $data = loadData($dataFile);
     return ['users' => $data['users']];
 }
 
