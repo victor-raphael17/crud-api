@@ -179,7 +179,7 @@ const flows = {
       icon: '&#10147;', title: 'Roteamento por URI', file: 'index.php',
       color: 'var(--accent)',
       body: 'Usa <code>match($uri)</code> para direcionar <code>/api/users</code> ao arquivo <code>api.php</code>. URIs desconhecidas caem em <code>notFound()</code>.',
-      detail: `$uri = strtok($_SERVER['REQUEST_URI'], '?');\nmatch ($uri) {\n  '/api/users' => require 'api.php',\n  '/docs'      => serveView(...),\n  default      => notFound(),\n};\n\nfunction notFound(): void {\n  http_response_code(404);\n  echo json_encode(['error' => 'Not found']);\n}`,
+      detail: `$uri = strtok($_SERVER['REQUEST_URI'], '?');\nmatch ($uri) {\n  '/api/users'    => require 'api.php',\n  '/docs'         => serveView(...),\n  '/openapi.json' => serveJson(...),\n  default         => notFound(),\n};\n\nfunction notFound(): void {\n  http_response_code(404);\n  echo json_encode(['error' => 'Not found']);\n}`,
     },
     {
       icon: '&#8644;', title: 'Dispatch por método HTTP', file: 'api.php',
@@ -230,7 +230,7 @@ const flows = {
       icon: '&#10147;', title: 'Roteamento por URI', file: 'index.php',
       color: 'var(--accent)',
       body: 'Direciona <code>/api/users</code> para <code>api.php</code> via <code>match($uri)</code>.',
-      detail: `$uri = strtok($_SERVER['REQUEST_URI'], '?');\nmatch ($uri) {\n  '/api/users' => require 'api.php',\n  '/docs'      => serveView(...),\n  default      => notFound(),\n};`,
+      detail: `$uri = strtok($_SERVER['REQUEST_URI'], '?');\nmatch ($uri) {\n  '/api/users'    => require 'api.php',\n  '/docs'         => serveView(...),\n  '/openapi.json' => serveJson(...),\n  default         => notFound(),\n};`,
     },
     {
       icon: '&#8644;', title: 'Dispatch por método HTTP', file: 'api.php',
@@ -254,7 +254,7 @@ const flows = {
       icon: '&#9733;', title: 'Service: createUser()', file: 'services.php',
       color: 'var(--orange)',
       body: 'Após validação, chama <code>insertUser()</code> para persistir o novo usuário.',
-      detail: `function createUser(string $dataFile, ?array $input): array {\n  $error = validateRequiredFields($input, ['name','age','email']);\n  if ($error) return ['error' => $error, 'status' => 400];\n\n  $error = validateUserFields($input);\n  if ($error) return ['error' => $error, 'status' => 400];\n\n  $user = insertUser($dataFile, [\n    'name'  => trim($input['name']),\n    'age'   => (int) $input['age'],\n    'email' => $input['email'],\n  ]);\n  return ['data' => $user, 'status' => 201];\n}`,
+      detail: `function createUser(string $dataFile, ?array $input): array {\n  if (!is_array($input)) {\n    return ['error' => 'Invalid JSON body', 'status' => 400];\n  }\n\n  $error = validateRequiredFields($input, ['name','age','email']);\n  if ($error) return ['error' => $error, 'status' => 400];\n\n  $error = validateUserFields($input);\n  if ($error) return ['error' => $error, 'status' => 400];\n\n  $user = insertUser($dataFile, [\n    'name'  => trim($input['name']),\n    'age'   => (int) $input['age'],\n    'email' => $input['email'],\n  ]);\n  return ['data' => $user, 'status' => 201];\n}`,
     },
     {
       icon: '&#9776;', title: 'Data: insertUser()', file: 'data.php',
@@ -317,7 +317,7 @@ const flows = {
       icon: '&#9733;', title: 'Service: editUser()', file: 'services.php',
       color: 'var(--orange)',
       body: 'Filtra os campos permitidos e chama <code>updateUser()</code> para persistir as alterações.',
-      detail: `function editUser(string $dataFile, ?int $id, ?array $input,\n  bool $partial = false): array {\n  // ... validações ...\n  $allowed = ['name', 'age', 'email'];\n  $fields = array_intersect_key($input, array_flip($allowed));\n  if (isset($fields['name'])) $fields['name'] = trim($fields['name']);\n  if (isset($fields['age']))  $fields['age'] = (int) $fields['age'];\n\n  $user = updateUser($dataFile, $id, $fields);\n  return $user === null\n    ? ['error' => 'User not found', 'status' => 404]\n    : ['data' => $user, 'status' => 200];\n}`,
+      detail: `function editUser(string $dataFile, ?int $id, ?array $input,\n  bool $partial = false): array {\n  if ($id === null)\n    return ['error' => 'User id is required', 'status' => 400];\n  if (!is_array($input))\n    return ['error' => 'Invalid JSON body', 'status' => 400];\n\n  // validações (required fields + user fields) ...\n  $allowed = ['name', 'age', 'email'];\n  $fields = array_intersect_key($input, array_flip($allowed));\n  if (isset($fields['name'])) $fields['name'] = trim($fields['name']);\n  if (isset($fields['age']))  $fields['age'] = (int) $fields['age'];\n\n  $user = updateUser($dataFile, $id, $fields);\n  return $user === null\n    ? ['error' => 'User not found', 'status' => 404]\n    : ['data' => $user, 'status' => 200];\n}`,
     },
     {
       icon: '&#9776;', title: 'Data: updateUser()', file: 'data.php',
