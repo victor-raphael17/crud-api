@@ -1,4 +1,11 @@
 {
-    "nextId": 1,
-    "users": []
+    "nextId": 2,
+    "users": [
+        {
+            "name": "asdf",
+            "age": 123,
+            "email": "asdf@asdf.com",
+            "id": 1
+        }
+    ]
 }
