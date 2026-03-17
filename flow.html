@@ -196,14 +196,14 @@ const flows = {
     {
       icon: '&#9733;', title: 'Service: getAllUsers()', file: 'services.php',
       color: 'var(--orange)',
-      body: 'Orquestra a busca chamando <code>findAllUsers()</code> na camada de dados.',
-      detail: `function getAllUsers(string $dataFile): array {\n  $data = findAllUsers($dataFile);\n  return ['users' => $data['users']];\n}`,
+      body: 'Chama <code>loadData()</code> diretamente na camada de dados e retorna o array de usuários.',
+      detail: `function getAllUsers(string $dataFile): array {\n  $data = loadData($dataFile);\n  return ['users' => $data['users']];\n}`,
     },
     {
-      icon: '&#9776;', title: 'Data: findAllUsers()', file: 'data.php',
+      icon: '&#9776;', title: 'Data: loadData()', file: 'data.php',
       color: 'var(--pink)',
-      body: 'Lê o arquivo <code>data.json</code> via <code>loadData()</code>, decodifica o JSON e retorna o array de usuários.',
-      detail: `function findAllUsers(string $dataFile): array {\n  return loadData($dataFile);\n}\n\nfunction loadData(string $dataFile): array {\n  return json_decode(\n    file_get_contents($dataFile), true\n  );\n}`,
+      body: 'Lê o arquivo <code>data.json</code>, decodifica o JSON e retorna o array completo de dados.',
+      detail: `function loadData(string $dataFile): array {\n  return json_decode(\n    file_get_contents($dataFile), true\n  );\n}`,
     },
     {
       icon: '&#10003;', title: 'Resposta JSON', file: '',
