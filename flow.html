@@ -95,7 +95,7 @@
     max-height:0;overflow:hidden;opacity:0;
     transition:max-height .35s ease,opacity .3s ease,margin-top .3s ease;
   }
-  .step-detail.open{max-height:300px;opacity:1}
+  .step-detail.open{max-height:500px;opacity:1}
 
   .toggle-detail{
     display:inline-flex;align-items:center;gap:.3rem;
@@ -173,37 +173,37 @@ const flows = {
       icon: '&#9881;', title: 'CORS & Headers', file: 'index.php',
       color: 'var(--accent)',
       body: 'Verifica se a <code>Origin</code> está na whitelist de <code>$allowedOrigins</code>. Se sim, adiciona headers CORS à resposta.',
-      detail: `$origin = $_SERVER['HTTP_ORIGIN'] ?? '';\n\nin_array($origin, $allowedOrigins) ?\n  header("Access-Control-Allow-Origin: $origin")\n  : null;`,
+      detail: `$origin = $_SERVER['HTTP_ORIGIN'] ?? '';\n\nin_array($origin, $allowedOrigins) ?\n  header("Access-Control-Allow-Origin: $origin")\n  : null;\n\nheader('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');\nheader('Access-Control-Allow-Headers: Content-Type');`,
     },
     {
       icon: '&#10147;', title: 'Roteamento por URI', file: 'index.php',
       color: 'var(--accent)',
-      body: 'Usa <code>match($uri)</code> para direcionar <code>/api/users</code> ao arquivo <code>api.php</code>.',
-      detail: `$uri = strtok($_SERVER['REQUEST_URI'], '?');\nmatch ($uri) {\n  '/api/users' => require 'api.php',\n  '/docs'      => serveView(...),\n  default      => notFound(),\n};`,
+      body: 'Usa <code>match($uri)</code> para direcionar <code>/api/users</code> ao arquivo <code>api.php</code>. URIs desconhecidas caem em <code>notFound()</code>.',
+      detail: `$uri = strtok($_SERVER['REQUEST_URI'], '?');\nmatch ($uri) {\n  '/api/users' => require 'api.php',\n  '/docs'      => serveView(...),\n  default      => notFound(),\n};\n\nfunction notFound(): void {\n  http_response_code(404);\n  echo json_encode(['error' => 'Not found']);\n}`,
     },
     {
       icon: '&#8644;', title: 'Dispatch por método HTTP', file: 'api.php',
       color: 'var(--accent)',
-      body: 'Identifica o método <code>GET</code> e chama <code>handleGet($dataFile)</code>.',
-      detail: `$method = $_SERVER['REQUEST_METHOD'];\nmatch ($method) {\n  'GET'    => handleGet($dataFile),\n  'POST'   => handlePost($dataFile),\n  'PUT'    => handlePut($dataFile),\n  'PATCH'  => handlePatch($dataFile),\n  'DELETE' => handleDelete($dataFile),\n  default  => handleMethodNotAllowed(),\n};`,
+      body: 'Identifica o método <code>GET</code> e chama <code>handleGet($dataFile)</code>. Métodos não suportados recebem <code>405</code>.',
+      detail: `$method = $_SERVER['REQUEST_METHOD'];\nmatch ($method) {\n  'GET'    => handleGet($dataFile),\n  'POST'   => handlePost($dataFile),\n  'PUT'    => handlePut($dataFile),\n  'PATCH'  => handlePatch($dataFile),\n  'DELETE' => handleDelete($dataFile),\n  default  => handleMethodNotAllowed(),\n};\n\nfunction handleMethodNotAllowed(): void {\n  http_response_code(405);\n  echo json_encode(['error' => 'Method not allowed']);\n}`,
     },
     {
       icon: '&#9638;', title: 'Controller: handleGet()', file: 'controllers.php',
       color: 'var(--purple)',
       body: 'O controller chama o serviço <code>getAllUsers()</code> e prepara a resposta JSON.',
-      detail: `function handleGet($dataFile) {\n  try {\n    echo json_encode(getAllUsers($dataFile));\n  } catch (\\Throwable $e) {\n    http_response_code(500);\n    echo json_encode(['error' => '...']);\n  }\n}`,
+      detail: `function handleGet(string $dataFile): void {\n  try {\n    echo json_encode(getAllUsers($dataFile));\n  } catch (\\Throwable $e) {\n    http_response_code(500);\n    echo json_encode(['error' => 'Internal server error']);\n  }\n}`,
     },
     {
       icon: '&#9733;', title: 'Service: getAllUsers()', file: 'services.php',
       color: 'var(--orange)',
       body: 'Orquestra a busca chamando <code>findAllUsers()</code> na camada de dados.',
-      detail: `function getAllUsers($dataFile) {\n  $data = findAllUsers($dataFile);\n  return ['users' => $data['users']];\n}`,
+      detail: `function getAllUsers(string $dataFile): array {\n  $data = findAllUsers($dataFile);\n  return ['users' => $data['users']];\n}`,
     },
     {
       icon: '&#9776;', title: 'Data: findAllUsers()', file: 'data.php',
       color: 'var(--pink)',
-      body: 'Lê o arquivo <code>data.json</code>, decodifica o JSON e retorna o array de usuários.',
-      detail: `function findAllUsers($dataFile) {\n  return loadData($dataFile);\n}`,
+      body: 'Lê o arquivo <code>data.json</code> via <code>loadData()</code>, decodifica o JSON e retorna o array de usuários.',
+      detail: `function findAllUsers(string $dataFile): array {\n  return loadData($dataFile);\n}\n\nfunction loadData(string $dataFile): array {\n  return json_decode(\n    file_get_contents($dataFile), true\n  );\n}`,
     },
     {
       icon: '&#10003;', title: 'Resposta JSON', file: '',
@@ -241,26 +241,32 @@ const flows = {
     {
       icon: '&#9638;', title: 'Controller: handlePost()', file: 'controllers.php',
       color: 'var(--purple)',
-      body: 'Lê o corpo da requisição com <code>php://input</code>, decodifica o JSON e passa para o serviço.',
-      detail: `$input = json_decode(\n  file_get_contents('php://input'), true\n);\nrespond(createUser($dataFile, $input));`,
+      body: 'Lê o corpo da requisição com <code>php://input</code>, decodifica o JSON e passa para o serviço via <code>respond()</code>.',
+      detail: `function handlePost(string $dataFile): void {\n  try {\n    $input = json_decode(\n      file_get_contents('php://input'), true\n    );\n    respond(createUser($dataFile, $input));\n  } catch (\\Throwable $e) {\n    http_response_code(500);\n    echo json_encode(['error' => 'Internal server error']);\n  }\n}`,
     },
     {
       icon: '&#10004;', title: 'Validação dos campos', file: 'validation.php',
       color: 'var(--yellow)',
       body: 'Verifica campos obrigatórios (<code>name</code>, <code>age</code>, <code>email</code>) e valida formato, tamanho e faixa de valores.',
-      detail: `validateRequiredFields($input,\n  ['name','age','email']);\nvalidateUserFields($input);\n// name: max 100 chars\n// age: 1-150, numérico\n// email: FILTER_VALIDATE_EMAIL`,
+      detail: `function validateRequiredFields(array $input, array $fields): ?string {\n  $missing = [];\n  foreach ($fields as $field) {\n    if (!isset($input[$field])) $missing[] = $field;\n  }\n  return !empty($missing)\n    ? implode(', ', $missing) . ' are required'\n    : null;\n}\n\nfunction validateUserFields(array $input): ?string {\n  // name: não vazio, max 100 chars\n  // age: numérico, entre 1-150\n  // email: FILTER_VALIDATE_EMAIL\n}`,
     },
     {
       icon: '&#9733;', title: 'Service: createUser()', file: 'services.php',
       color: 'var(--orange)',
       body: 'Após validação, chama <code>insertUser()</code> para persistir o novo usuário.',
-      detail: `$user = insertUser($dataFile, [\n  'name'  => trim($input['name']),\n  'age'   => (int) $input['age'],\n  'email' => $input['email'],\n]);\nreturn ['data' => $user, 'status' => 201];`,
+      detail: `function createUser(string $dataFile, ?array $input): array {\n  $error = validateRequiredFields($input, ['name','age','email']);\n  if ($error) return ['error' => $error, 'status' => 400];\n\n  $error = validateUserFields($input);\n  if ($error) return ['error' => $error, 'status' => 400];\n\n  $user = insertUser($dataFile, [\n    'name'  => trim($input['name']),\n    'age'   => (int) $input['age'],\n    'email' => $input['email'],\n  ]);\n  return ['data' => $user, 'status' => 201];\n}`,
     },
     {
       icon: '&#9776;', title: 'Data: insertUser()', file: 'data.php',
       color: 'var(--pink)',
       body: 'Gera um <code>id</code> a partir de <code>nextId</code>, incrementa o contador, adiciona o usuário ao array e salva no <code>data.json</code>.',
-      detail: `$data = loadData($dataFile);\n$id = $data['nextId'] ?? 1;\n$data['nextId'] = $id + 1;\n$user['id'] = $id;\n$data['users'][] = $user;\nsaveData($dataFile, $data);`,
+      detail: `function insertUser(string $dataFile, array $user): array {\n  $data = loadData($dataFile);\n  $id = $data['nextId'] ?? 1;\n  $data['nextId'] = $id + 1;\n  $user['id'] = $id;\n  $data['users'][] = $user;\n  saveData($dataFile, $data);\n  return $user;\n}\n\nfunction saveData(string $dataFile, array $data): void {\n  file_put_contents($dataFile,\n    json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)\n  );\n}`,
+    },
+    {
+      icon: '&#9881;', title: 'respond()', file: 'controllers.php',
+      color: 'var(--purple)',
+      body: 'Função auxiliar que define o <code>http_response_code</code> e envia o JSON de resposta ou de erro.',
+      detail: `function respond(array $result): void {\n  http_response_code($result['status']);\n\n  if (isset($result['error'])) {\n    echo json_encode(['error' => $result['error']]);\n  } else {\n    echo json_encode($result['data']);\n  }\n}`,
     },
     {
       icon: '&#10003;', title: 'Resposta JSON', file: '',
@@ -298,26 +304,32 @@ const flows = {
     {
       icon: '&#9638;', title: 'Controller: handlePut()', file: 'controllers.php',
       color: 'var(--purple)',
-      body: 'Extrai o <code>id</code> do query string, lê o corpo JSON e chama o serviço.',
-      detail: `$input = json_decode(\n  file_get_contents('php://input'), true\n);\n$id = isset($_GET['id'])\n  ? (int) $_GET['id'] : null;\nrespond(editUser($dataFile, $id, $input));`,
+      body: 'Extrai o <code>id</code> do query string, lê o corpo JSON e chama o serviço via <code>respond()</code>.',
+      detail: `function handlePut(string $dataFile): void {\n  try {\n    $input = json_decode(\n      file_get_contents('php://input'), true\n    );\n    $id = isset($_GET['id'])\n      ? (int) $_GET['id'] : null;\n    respond(editUser($dataFile, $id, $input));\n  } catch (\\Throwable $e) {\n    http_response_code(500);\n    echo json_encode(['error' => 'Internal server error']);\n  }\n}`,
     },
     {
       icon: '&#10004;', title: 'Validação completa', file: 'validation.php',
       color: 'var(--yellow)',
       body: 'Como é <code>PUT</code>, <strong>todos</strong> os campos são obrigatórios: <code>name</code>, <code>age</code> e <code>email</code>.',
-      detail: `// partial = false (padrão)\n$error = validateRequiredFields(\n  $input, ['name','age','email']\n);\n$error = validateUserFields($input);`,
+      detail: `// partial = false (padrão do editUser)\n$error = validateRequiredFields(\n  $input, ['name','age','email']\n);\nif ($error) return ['error' => $error, 'status' => 400];\n\n$error = validateUserFields($input);\nif ($error) return ['error' => $error, 'status' => 400];`,
     },
     {
       icon: '&#9733;', title: 'Service: editUser()', file: 'services.php',
       color: 'var(--orange)',
       body: 'Filtra os campos permitidos e chama <code>updateUser()</code> para persistir as alterações.',
-      detail: `$allowed = ['name', 'age', 'email'];\n$fields = array_intersect_key(\n  $input, array_flip($allowed)\n);\n$user = updateUser($dataFile, $id, $fields);`,
+      detail: `function editUser(string $dataFile, ?int $id, ?array $input,\n  bool $partial = false): array {\n  // ... validações ...\n  $allowed = ['name', 'age', 'email'];\n  $fields = array_intersect_key($input, array_flip($allowed));\n  if (isset($fields['name'])) $fields['name'] = trim($fields['name']);\n  if (isset($fields['age']))  $fields['age'] = (int) $fields['age'];\n\n  $user = updateUser($dataFile, $id, $fields);\n  return $user === null\n    ? ['error' => 'User not found', 'status' => 404]\n    : ['data' => $user, 'status' => 200];\n}`,
     },
     {
       icon: '&#9776;', title: 'Data: updateUser()', file: 'data.php',
       color: 'var(--pink)',
       body: 'Encontra o usuário pelo <code>id</code>, faz merge dos campos e salva no <code>data.json</code>.',
-      detail: `foreach ($data['users'] as $i => $user) {\n  if ($user['id'] === $id) {\n    $data['users'][$i] =\n      array_merge($user, $fields);\n    saveData($dataFile, $data);\n    return $data['users'][$i];\n  }\n}`,
+      detail: `function updateUser(string $dataFile, int $id, array $fields): ?array {\n  $data = loadData($dataFile);\n  foreach ($data['users'] as $i => $user) {\n    if ($user['id'] === $id) {\n      $data['users'][$i] = array_merge($user, $fields);\n      saveData($dataFile, $data);\n      return $data['users'][$i];\n    }\n  }\n  return null;\n}`,
+    },
+    {
+      icon: '&#9881;', title: 'respond()', file: 'controllers.php',
+      color: 'var(--purple)',
+      body: 'Define o <code>http_response_code</code> e envia o JSON de resposta ou de erro.',
+      detail: `function respond(array $result): void {\n  http_response_code($result['status']);\n\n  if (isset($result['error'])) {\n    echo json_encode(['error' => $result['error']]);\n  } else {\n    echo json_encode($result['data']);\n  }\n}`,
     },
     {
       icon: '&#10003;', title: 'Resposta JSON', file: '',
@@ -355,26 +367,32 @@ const flows = {
     {
       icon: '&#9638;', title: 'Controller: handlePatch()', file: 'controllers.php',
       color: 'var(--purple)',
-      body: 'Extrai o <code>id</code>, lê o corpo JSON e chama o serviço com <code>partial: true</code>.',
-      detail: `$input = json_decode(\n  file_get_contents('php://input'), true\n);\n$id = isset($_GET['id'])\n  ? (int) $_GET['id'] : null;\nrespond(editUser($dataFile, $id, $input,\n  partial: true));`,
+      body: 'Extrai o <code>id</code>, lê o corpo JSON e chama o serviço com <code>partial: true</code> via <code>respond()</code>.',
+      detail: `function handlePatch(string $dataFile): void {\n  try {\n    $input = json_decode(\n      file_get_contents('php://input'), true\n    );\n    $id = isset($_GET['id'])\n      ? (int) $_GET['id'] : null;\n    respond(editUser($dataFile, $id, $input,\n      partial: true));\n  } catch (\\Throwable $e) {\n    http_response_code(500);\n    echo json_encode(['error' => 'Internal server error']);\n  }\n}`,
     },
     {
       icon: '&#10004;', title: 'Validação parcial', file: 'validation.php',
       color: 'var(--yellow)',
       body: 'Como é <code>PATCH</code>, valida <strong>apenas</strong> os campos que foram enviados. Campos ausentes são ignorados.',
-      detail: `// partial = true → pula required\n// valida só os campos presentes\n$error = validateUserFields($input);\n// ex: apenas "age" é validado\n// age: numérico, entre 1-150`,
+      detail: `// partial = true → pula validateRequiredFields\n// valida só os campos presentes:\n$error = validateUserFields($input);\n\nfunction validateUserFields(array $input): ?string {\n  // name: não vazio, max 100 chars\n  // age: is_numeric, entre 1-150\n  // email: filter_var FILTER_VALIDATE_EMAIL\n  return null; // se tudo ok\n}`,
     },
     {
       icon: '&#9733;', title: 'Service: editUser(partial)', file: 'services.php',
       color: 'var(--orange)',
       body: 'Filtra campos permitidos e chama <code>updateUser()</code> para fazer merge parcial.',
-      detail: `$allowed = ['name', 'age', 'email'];\n$fields = array_intersect_key(\n  $input, array_flip($allowed)\n);\n// apenas {"age": 27} passa\n$user = updateUser($dataFile, $id, $fields);`,
+      detail: `// partial: true → não exige todos os campos\n$allowed = ['name', 'age', 'email'];\n$fields = array_intersect_key(\n  $input, array_flip($allowed)\n);\n// apenas {"age": 27} passa o filtro\n$user = updateUser($dataFile, $id, $fields);`,
     },
     {
       icon: '&#9776;', title: 'Data: updateUser()', file: 'data.php',
       color: 'var(--pink)',
       body: 'Encontra o usuário, faz merge apenas dos campos enviados e salva.',
-      detail: `foreach ($data['users'] as $i => $user) {\n  if ($user['id'] === $id) {\n    // merge parcial: só "age" muda\n    $data['users'][$i] =\n      array_merge($user, ["age" => 27]);\n    saveData($dataFile, $data);\n    return $data['users'][$i];\n  }\n}`,
+      detail: `function updateUser(string $dataFile, int $id, array $fields): ?array {\n  $data = loadData($dataFile);\n  foreach ($data['users'] as $i => $user) {\n    if ($user['id'] === $id) {\n      // merge parcial: só "age" muda\n      $data['users'][$i] = array_merge($user, $fields);\n      saveData($dataFile, $data);\n      return $data['users'][$i];\n    }\n  }\n  return null;\n}`,
+    },
+    {
+      icon: '&#9881;', title: 'respond()', file: 'controllers.php',
+      color: 'var(--purple)',
+      body: 'Define o <code>http_response_code</code> e envia o JSON de resposta ou de erro.',
+      detail: `function respond(array $result): void {\n  http_response_code($result['status']);\n\n  if (isset($result['error'])) {\n    echo json_encode(['error' => $result['error']]);\n  } else {\n    echo json_encode($result['data']);\n  }\n}`,
     },
     {
       icon: '&#10003;', title: 'Resposta JSON', file: '',
@@ -412,20 +430,26 @@ const flows = {
     {
       icon: '&#9638;', title: 'Controller: handleDelete()', file: 'controllers.php',
       color: 'var(--purple)',
-      body: 'Extrai o <code>id</code> do query string e chama o serviço <code>removeUser()</code>.',
-      detail: `$id = isset($_GET['id'])\n  ? (int) $_GET['id'] : null;\nrespond(removeUser($dataFile, $id));`,
+      body: 'Extrai o <code>id</code> do query string e chama o serviço <code>removeUser()</code> via <code>respond()</code>.',
+      detail: `function handleDelete(string $dataFile): void {\n  try {\n    $id = isset($_GET['id'])\n      ? (int) $_GET['id'] : null;\n    respond(removeUser($dataFile, $id));\n  } catch (\\Throwable $e) {\n    http_response_code(500);\n    echo json_encode(['error' => 'Internal server error']);\n  }\n}`,
     },
     {
       icon: '&#9733;', title: 'Service: removeUser()', file: 'services.php',
       color: 'var(--orange)',
       body: 'Valida que o <code>id</code> foi fornecido e chama <code>deleteUser()</code> na camada de dados.',
-      detail: `function removeUser($dataFile, $id) {\n  if ($id === null) {\n    return ['error' => 'User id is required',\n            'status' => 400];\n  }\n  $user = deleteUser($dataFile, $id);\n  return ['data' => ['deleted' => $user],\n          'status' => 200];\n}`,
+      detail: `function removeUser(string $dataFile, ?int $id): array {\n  if ($id === null) {\n    return ['error' => 'User id is required',\n            'status' => 400];\n  }\n  $user = deleteUser($dataFile, $id);\n  if ($user === null) {\n    return ['error' => 'User not found', 'status' => 404];\n  }\n  return ['data' => ['deleted' => $user],\n          'status' => 200];\n}`,
     },
     {
       icon: '&#9776;', title: 'Data: deleteUser()', file: 'data.php',
       color: 'var(--pink)',
-      body: 'Encontra o usuário pelo <code>id</code>, remove do array e salva o <code>data.json</code> atualizado.',
-      detail: `foreach ($data['users'] as $i => $user) {\n  if ($user['id'] === $id) {\n    array_splice($data['users'], $i, 1);\n    saveData($dataFile, $data);\n    return $user;\n  }\n}`,
+      body: 'Encontra o usuário pelo <code>id</code>, remove do array com <code>array_splice</code> e salva o <code>data.json</code> atualizado.',
+      detail: `function deleteUser(string $dataFile, int $id): ?array {\n  $data = loadData($dataFile);\n  foreach ($data['users'] as $i => $user) {\n    if ($user['id'] === $id) {\n      array_splice($data['users'], $i, 1);\n      saveData($dataFile, $data);\n      return $user;\n    }\n  }\n  return null;\n}`,
+    },
+    {
+      icon: '&#9881;', title: 'respond()', file: 'controllers.php',
+      color: 'var(--purple)',
+      body: 'Define o <code>http_response_code</code> e envia o JSON de resposta ou de erro.',
+      detail: `function respond(array $result): void {\n  http_response_code($result['status']);\n\n  if (isset($result['error'])) {\n    echo json_encode(['error' => $result['error']]);\n  } else {\n    echo json_encode($result['data']);\n  }\n}`,
     },
     {
       icon: '&#10003;', title: 'Resposta JSON', file: '',
