@@ -19,7 +19,9 @@
     "paths": {
         "/api/users": {
             "get": {
-                "tags": ["Users"],
+                "tags": [
+                    "Users"
+                ],
                 "operationId": "listUsers",
                 "summary": "List all users",
                 "responses": {
@@ -32,13 +34,20 @@
                                     "properties": {
                                         "users": {
                                             "type": "array",
-                                            "items": { "$ref": "#/components/schemas/User" }
+                                            "items": {
+                                                "$ref": "#/components/schemas/User"
+                                            }
                                         }
                                     }
                                 },
                                 "example": {
                                     "users": [
-                                        { "id": 1, "name": "Victor Raphael", "age": 24, "email": "victor@email.com" }
+                                        {
+                                            "id": 1,
+                                            "name": "Victor Raphael",
+                                            "age": 24,
+                                            "email": "victor@email.com"
+                                        }
                                     ]
                                 }
                             }
@@ -50,14 +59,18 @@
                 }
             },
             "post": {
-                "tags": ["Users"],
+                "tags": [
+                    "Users"
+                ],
                 "operationId": "createUser",
                 "summary": "Create a new user",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
-                            "schema": { "$ref": "#/components/schemas/UserInput" },
+                            "schema": {
+                                "$ref": "#/components/schemas/UserInput"
+                            },
                             "example": {
                                 "name": "Victor Raphael",
                                 "age": 24,
@@ -71,7 +84,9 @@
                         "description": "User created successfully",
                         "content": {
                             "application/json": {
-                                "schema": { "$ref": "#/components/schemas/User" },
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                },
                                 "example": {
                                     "id": 1,
                                     "name": "Victor Raphael",
@@ -85,19 +100,27 @@
                         "description": "Invalid request — possible causes: invalid JSON body, missing required fields (`name`, `age`, `email`), or field validation errors (empty name, name over 100 chars, age not between 1–150, invalid email format)",
                         "content": {
                             "application/json": {
-                                "schema": { "$ref": "#/components/schemas/Error" },
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
                                 "examples": {
                                     "invalidJson": {
                                         "summary": "Invalid JSON body",
-                                        "value": { "error": "Invalid JSON body" }
+                                        "value": {
+                                            "error": "Invalid JSON body"
+                                        }
                                     },
                                     "missingFields": {
                                         "summary": "Missing required fields",
-                                        "value": { "error": "name, age, email are required" }
+                                        "value": {
+                                            "error": "name, age, email are required"
+                                        }
                                     },
                                     "invalidAge": {
                                         "summary": "Validation error",
-                                        "value": { "error": "Age must be between 1 and 150" }
+                                        "value": {
+                                            "error": "Age must be between 1 and 150"
+                                        }
                                     }
                                 }
                             }
@@ -109,17 +132,23 @@
                 }
             },
             "put": {
-                "tags": ["Users"],
+                "tags": [
+                    "Users"
+                ],
                 "operationId": "replaceUser",
                 "summary": "Update a user (full replacement)",
                 "parameters": [
-                    { "$ref": "#/components/parameters/Id" }
+                    {
+                        "$ref": "#/components/parameters/Id"
+                    }
                 ],
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
-                            "schema": { "$ref": "#/components/schemas/UserInput" },
+                            "schema": {
+                                "$ref": "#/components/schemas/UserInput"
+                            },
                             "example": {
                                 "name": "Victor Raphael",
                                 "age": 25,
@@ -133,7 +162,9 @@
                         "description": "User updated successfully",
                         "content": {
                             "application/json": {
-                                "schema": { "$ref": "#/components/schemas/User" }
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
                             }
                         }
                     },
@@ -141,19 +172,27 @@
                         "description": "Invalid request — possible causes: missing `id` query parameter, invalid JSON body, missing required fields (`name`, `age`, `email`), or field validation errors",
                         "content": {
                             "application/json": {
-                                "schema": { "$ref": "#/components/schemas/Error" },
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
                                 "examples": {
                                     "missingId": {
                                         "summary": "Missing id parameter",
-                                        "value": { "error": "User id is required" }
+                                        "value": {
+                                            "error": "User id is required"
+                                        }
                                     },
                                     "missingFields": {
                                         "summary": "Missing required fields",
-                                        "value": { "error": "name, age, email are required" }
+                                        "value": {
+                                            "error": "name, age, email are required"
+                                        }
                                     },
                                     "invalidEmail": {
                                         "summary": "Validation error",
-                                        "value": { "error": "Invalid email format" }
+                                        "value": {
+                                            "error": "Invalid email format"
+                                        }
                                     }
                                 }
                             }
@@ -168,18 +207,24 @@
                 }
             },
             "patch": {
-                "tags": ["Users"],
+                "tags": [
+                    "Users"
+                ],
                 "operationId": "updateUser",
                 "summary": "Partially update a user",
                 "description": "Updates only the provided fields. At least one field (`name`, `age`, or `email`) should be sent.",
                 "parameters": [
-                    { "$ref": "#/components/parameters/Id" }
+                    {
+                        "$ref": "#/components/parameters/Id"
+                    }
                 ],
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
-                            "schema": { "$ref": "#/components/schemas/UserPartial" },
+                            "schema": {
+                                "$ref": "#/components/schemas/UserPartial"
+                            },
                             "example": {
                                 "age": 25
                             }
@@ -191,7 +236,9 @@
                         "description": "User updated successfully",
                         "content": {
                             "application/json": {
-                                "schema": { "$ref": "#/components/schemas/User" }
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
                             }
                         }
                     },
@@ -199,19 +246,27 @@
                         "description": "Invalid request — possible causes: missing `id` query parameter, invalid JSON body, or field validation errors (empty name, name over 100 chars, age not between 1–150, invalid email format)",
                         "content": {
                             "application/json": {
-                                "schema": { "$ref": "#/components/schemas/Error" },
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
                                 "examples": {
                                     "missingId": {
                                         "summary": "Missing id parameter",
-                                        "value": { "error": "User id is required" }
+                                        "value": {
+                                            "error": "User id is required"
+                                        }
                                     },
                                     "invalidJson": {
                                         "summary": "Invalid JSON body",
-                                        "value": { "error": "Invalid JSON body" }
+                                        "value": {
+                                            "error": "Invalid JSON body"
+                                        }
                                     },
                                     "invalidName": {
                                         "summary": "Validation error",
-                                        "value": { "error": "Name cannot be empty" }
+                                        "value": {
+                                            "error": "Name cannot be empty"
+                                        }
                                     }
                                 }
                             }
@@ -226,11 +281,15 @@
                 }
             },
             "delete": {
-                "tags": ["Users"],
+                "tags": [
+                    "Users"
+                ],
                 "operationId": "deleteUser",
                 "summary": "Delete a user",
                 "parameters": [
-                    { "$ref": "#/components/parameters/Id" }
+                    {
+                        "$ref": "#/components/parameters/Id"
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -240,7 +299,9 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
-                                        "deleted": { "$ref": "#/components/schemas/User" }
+                                        "deleted": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
                                     }
                                 },
                                 "example": {
@@ -258,8 +319,12 @@
                         "description": "Missing `id` query parameter",
                         "content": {
                             "application/json": {
-                                "schema": { "$ref": "#/components/schemas/Error" },
-                                "example": { "error": "User id is required" }
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "example": {
+                                    "error": "User id is required"
+                                }
                             }
                         }
                     },
@@ -278,38 +343,92 @@
             "User": {
                 "type": "object",
                 "properties": {
-                    "id": { "type": "integer", "example": 1, "readOnly": true },
-                    "name": { "type": "string", "example": "Victor Raphael", "maxLength": 100 },
-                    "age": { "type": "integer", "example": 24, "minimum": 1, "maximum": 150 },
-                    "email": { "type": "string", "format": "email", "example": "victor@email.com" }
+                    "id": {
+                        "type": "integer",
+                        "example": 1,
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Victor Raphael",
+                        "maxLength": 100
+                    },
+                    "age": {
+                        "type": "integer",
+                        "example": 24,
+                        "minimum": 1,
+                        "maximum": 150
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "victor@email.com"
+                    }
                 },
-                "required": ["id", "name", "age", "email"]
+                "required": [
+                    "id",
+                    "name",
+                    "age",
+                    "email"
+                ]
             },
             "UserInput": {
                 "type": "object",
                 "description": "Request body for creating or fully replacing a user",
-                "required": ["name", "age", "email"],
+                "required": [
+                    "name",
+                    "age",
+                    "email"
+                ],
                 "properties": {
-                    "name": { "type": "string", "maxLength": 100, "example": "Victor Raphael" },
-                    "age": { "type": "integer", "minimum": 1, "maximum": 150, "example": 24 },
-                    "email": { "type": "string", "format": "email", "example": "victor@email.com" }
+                    "name": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "example": "Victor Raphael"
+                    },
+                    "age": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 150,
+                        "example": 24
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "victor@email.com"
+                    }
                 }
             },
             "UserPartial": {
                 "type": "object",
                 "description": "Request body for partially updating a user — all fields are optional",
                 "properties": {
-                    "name": { "type": "string", "maxLength": 100 },
-                    "age": { "type": "integer", "minimum": 1, "maximum": 150 },
-                    "email": { "type": "string", "format": "email" }
+                    "name": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "age": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 150
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    }
                 }
             },
             "Error": {
                 "type": "object",
                 "properties": {
-                    "error": { "type": "string", "example": "name, age, email are required" }
+                    "error": {
+                        "type": "string",
+                        "example": "name, age, email are required"
+                    }
                 },
-                "required": ["error"]
+                "required": [
+                    "error"
+                ]
             }
         },
         "parameters": {
@@ -317,7 +436,9 @@
                 "name": "id",
                 "in": "query",
                 "required": true,
-                "schema": { "type": "integer" },
+                "schema": {
+                    "type": "integer"
+                },
                 "description": "Unique user ID",
                 "example": 1
             }
@@ -327,8 +448,12 @@
                 "description": "User not found",
                 "content": {
                     "application/json": {
-                        "schema": { "$ref": "#/components/schemas/Error" },
-                        "example": { "error": "User not found" }
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        },
+                        "example": {
+                            "error": "User not found"
+                        }
                     }
                 }
             },
@@ -336,8 +461,12 @@
                 "description": "Internal server error",
                 "content": {
                     "application/json": {
-                        "schema": { "$ref": "#/components/schemas/Error" },
-                        "example": { "error": "Internal server error" }
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        },
+                        "example": {
+                            "error": "Internal server error"
+                        }
                     }
                 }
             }
